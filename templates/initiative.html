@@ -1,0 +1,55 @@
+<html>
+  <head>
+    <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='bootstrap.min.css') }}">
+  </head>
+  <body>
+    <nav class="navbar navbar-default">
+      <div class="container-fluid">
+        <ul class="nav navbar-nav navbar-right">
+          <li><a href="#">Home</a></li>
+          <li><a href="ballot">Ballot</a></li>
+          <li><a href="booth">Voting Booth</a></li>
+          <li><a href="candidate">Candidates</a></li>
+          <li class="active"><a href="initiative">Initiatives</a></li>
+        </ul>
+      </div>
+    </nav>
+
+    <div class="container">
+      {% if ask %}
+        <div class="row">
+          <div class="row">
+            <h3>Select your election district</h3>
+            <form method="POST" action="/initiative">
+              <div class="form-group">
+                <label for="districtSelect" style="font-weight: 400 !important;">Your District</label>
+                <select name="district" class="form-control" id="districtSelect" required>
+                  {% for n in data %}
+                    <option>{{n}}</option>
+                  {% endfor %}
+                </select>
+              <div>
+              <br>
+
+              <button type="submit" class="btn btn-primary">Select</button>
+            </form>
+          </div>
+        </div>
+      {% else %}
+        <div class="row">
+          <h3>Ballot Initiatives</h3>
+          <ul>
+            {% for initiative in initiatives %}
+              <li>
+                <p><b>Name: </b>{{initiative.name}}</p>
+                <p><b>Title: </b>{{initiative.title}}</p>
+                <p><b>Description </b>{{initiative.description}}</p>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+    </div>
+
+  </body>
+</html>

@@ -139,7 +139,35 @@ def create():
 
 @app.route('/booth')
 def booth():
-  return render_template("booth.html")
+    try:
+      cursor = g.conn.execute("SELECT district FROM ElectionDistrict")
+    except Exception, e:
+        return render_template("error.html", error=e)
+    districts = processSQLObj(cursor)
+    cursor.close()
+
+    context = {'ask': True, 'data': districts}
+    return render_template("booth.html", **context)
+
+@app.route('/booth', methods=['POST'])
+def boothpost():
+    try:
+        district = request.form['district']
+
+        addressQuery = """
+            SELECT v.address
+            FROM (ElectionDistrict e JOIN AssociatedWith a ON e.eid = a.eid) JOIN VotingBooth v ON v.vbid = a.vbid
+            WHERE e.district = '{district}'
+        """
+        cursor = g.conn.execute(addressQuery.format(district = district))
+        addr = processSQLObj(cursor)[0]
+        cursor.close()
+
+        context = {'ask': False, 'address': addr}
+        return render_template("booth.html", **context)
+    except Exception, e:
+        return render_template("error.html", error=e)
+
 
 @app.route('/ballot')
 def ballot():
@@ -192,8 +220,6 @@ def ballotpost():
             initiatives.append(initiative)
         cursor.close()
 
-        print initiatives
-
         context = {'ask': False, 'name': name, 'address': addr, 'candidates': candidates, 'initiatives': initiatives}
         return render_template("ballot.html", **context)
     except Exception, e:
@@ -202,11 +228,73 @@ def ballotpost():
 
 @app.route('/candidate')
 def candidate():
-  return render_template("candidate.html")
+    try:
+      cursor = g.conn.execute("SELECT district FROM ElectionDistrict")
+    except Exception, e:
+        return render_template("error.html", error=e)
+    districts = processSQLObj(cursor)
+    cursor.close()
+
+    context = {'ask': True, 'data': districts}
+    return render_template("candidate.html", **context)
+
+@app.route('/candidate', methods=['POST'])
+def candidatepost():
+    try:
+        district = request.form['district']
+
+        candidateQuery = """
+            SELECT c.name
+            FROM (ElectionDistrict e JOIN RunningIn r ON e.eid = r.eid) JOIN Candidate c ON r.cid = r.cid
+            WHERE e.district = '{district}'
+        """
+        cursor = g.conn.execute(candidateQuery.format(district = district))
+        candidates = processSQLObj(cursor)
+        cursor.close()
+
+
+        context = {'ask': False, 'candidates': candidates,}
+        return render_template("candidate.html", **context)
+    except Exception, e:
+        return render_template("error.html", error=e)
 
 @app.route('/initiative')
 def initiative():
-  return render_template("initiative.html")
+    try:
+      cursor = g.conn.execute("SELECT district FROM ElectionDistrict")
+    except Exception, e:
+        return render_template("error.html", error=e)
+    districts = processSQLObj(cursor)
+    cursor.close()
+
+    context = {'ask': True, 'data': districts}
+    return render_template("initiative.html", **context)
+
+@app.route('/initiative', methods=['POST'])
+def initiativepost():
+    try:
+        district = request.form['district']
+
+        initiativeQuery = """
+            SELECT bi.name, bi.title, bi.description
+            FROM (ElectionDistrict e JOIN OfferedIn o ON e.eid = o.eid) JOIN BallotInitiative bi ON bi.biid = o.biid
+            WHERE e.district = '{district}'
+        """
+        cursor = g.conn.execute(initiativeQuery.format(district = district))
+        initiatives = []
+        for result in cursor:
+            initiative = {}
+            initiative['name'] = result[0]
+            initiative['title'] = result[1]
+            initiative['description'] = result[2]
+            print initiative
+            initiatives.append(initiative)
+        cursor.close()
+
+        context = {'ask': False, 'initiatives': initiatives}
+        return render_template("initiative.html", **context)
+    except Exception, e:
+        return render_template("error.html", error=e)
 
 # Example of adding new data to the database
 @app.route('/add', methods=['POST'])
