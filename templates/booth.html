@@ -1,0 +1,11 @@
+{% if ask %}
+  <h3>Select your name</h3>
+  <form method="POST" action="/booth">
+    {% for n in data %}
+      <input type="radio" name="name" value="{{n}}">{{n}}</input><br>
+    {% endfor %}
+    <input type="submit" value="Choose">
+  </form>
+{% else %}
+  <p>You should go to address: {{data}}</p>
+{% endif %}

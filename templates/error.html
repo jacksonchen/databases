@@ -1,0 +1,25 @@
+<html>
+  <head>
+    <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='bootstrap.min.css') }}">
+  </head>
+  <body>
+    <nav class="navbar navbar-default">
+      <div class="container-fluid">
+        <ul class="nav navbar-nav navbar-right">
+          <li><a href="/">Home</a></li>
+          <li><a href="booth">Voting Booth</a></li>
+          <li><a href="candidate">Candidates</a></li>
+          <li><a href="initiative">Ballot Initiatives</a></li>
+        </ul>
+      </div>
+    </nav>
+
+    <div class="container">
+      <div class="row">
+        <h3>The action you just committed returned an error!</h3>
+        <p>{{error}}</p>
+      </div>
+    </div>
+
+  </body>
+</html>

@@ -1,0 +1,78 @@
+<html>
+  <head>
+    <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='bootstrap.min.css') }}">
+  </head>
+  <body>
+    <nav class="navbar navbar-default">
+      <div class="container-fluid">
+        <ul class="nav navbar-nav navbar-right">
+          <li class="active"><a href="#">Home</a></li>
+          <li><a href="booth">Voting Booth</a></li>
+          <li><a href="candidate">Candidates</a></li>
+          <li><a href="initiative">Ballot Initiatives</a></li>
+        </ul>
+      </div>
+    </nav>
+
+    <div class="container">
+      <div class="row">
+        <h2>Voting Center</h2>
+        <p>Made by Jackson Chen and Aida Lu for COMS W4111</p>
+      </div>
+
+      <div class="row">
+        <h4>How to use the website</h4>
+        <ul>
+          <li>When you go to an information page, you will be prompted to either select a user stored in the database, or enter your election district.</li>
+          <li>Once you select an option, it will give you the most relevant information associated with your user or election district.</li>
+          <li>If you want to create a new user for yourself, please fill out of the form in the section below.</li>
+        </ul>
+
+        <h4>Links</h4>
+        <p>If you want to see your closest voting booth, go <a href="booth">here</a>.<br>
+        If you want to see your local candidates, go <a href="candidate">here</a>.<br>
+        If you want to see your local ballot initiatives, go <a href="initiative">here</a>.</p>
+
+        <br>
+        <h4>New User?<h4>
+          <form style="font-weight: 400 !important;" method="POST" action="/">
+            <div class="form-group">
+              <label for="namefield" style="font-weight: 400 !important;">Your Name</label>
+              <input name="name" type="text" class="form-control" id="namefield" placeholder="Enter name" required>
+            </div>
+
+            <div class="form-group">
+              <label for="addressfield" style="font-weight: 400 !important;">Address</label>
+              <input name="address" type="text" class="form-control" id="addressfield" placeholder="Address" required>
+            </div>
+
+            <div class="form-group">
+              <label for="agefield" style="font-weight: 400 !important;">Age</label>
+              <input name="age" type="number" class="form-control" id="agefield" placeholder="Age" required>
+            </div>
+
+            <div class="form-group">
+              <label for="districtSelect1" style="font-weight: 400 !important;">Election District</label>
+              <select name="district" class="form-control" id="districtSelect1" required>
+                {% for n in districts %}
+                  <option>{{n}}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="partySelect" style="font-weight: 400 !important;">Political Party</label>
+              <select name="party" class="form-control" id="partySelect" required>
+                {% for n in parties %}
+                  <option>{{n}}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </form>
+      </div>
+    </div>
+
+  </body>
+</html>
