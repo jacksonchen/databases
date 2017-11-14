@@ -123,16 +123,37 @@ def index():
 
 @app.route('/', methods=['POST'])
 def create():
+    party = request.form['party']
+    name = request.form['name']
+    address = request.form['address']
+    age = request.form['age']
+    district = request.form['district']
+
     try:
         newVoterID = g.conn.execute('SELECT MAX(vid) FROM Voter').fetchone()[0] + 1
-        partyID = g.conn.execute('SELECT pid FROM PoliticalParty WHERE name = {0}'.format(request.form['party'])).fetchone()[0]
+        partyID = g.conn.execute("SELECT pid FROM PoliticalParty WHERE name = '{0}'".format(party)).fetchone()[0]
+        ballotQuery = """
+            SELECT d.bid
+            FROM ((ElectionDistrict e JOIN AssociatedWith a ON e.eid = a.eid) JOIN VotingBooth vb ON vb.vbid = a.vbid) JOIN Distribute d ON d.vbid = vb.vbid
+            WHERE e.district = '{district}'
+            LIMIT 1
+        """
+        cursor = g.conn.execute(ballotQuery.format(district = district))
+        ballot = processSQLObj(cursor)[0]
+        cursor.close()
+
         g.conn.execute("""INSERT INTO Voter (vid, name, address, age)
                           VALUES ({vidinput}, '{nameinput}', '{addressinput}', {ageinput})
-                       """.format(vidinput = newVoterID, nameinput = request.form['name'], addressinput = request.form['address'], ageinput = request.form['age']))
+                       """.format(vidinput = newVoterID, nameinput = name, addressinput = address, ageinput = age))
 
         g.conn.execute("""INSERT INTO VoterRegistration (vid, pid)
                           VALUES ({vidinput}, {pidinput})
                        """.format(vidinput = newVoterID, pidinput = partyID))
+
+        g.conn.execute("""INSERT INTO CastBallot (vid, bid)
+                          VALUES ({vidinput}, {bidinput})
+                       """.format(vidinput = newVoterID, bidinput = ballot))
+
         return redirect('/')
     except Exception, e:
         return render_template("error.html", error=e)
