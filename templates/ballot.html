@@ -1,0 +1,66 @@
+<html>
+  <head>
+    <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='bootstrap.min.css') }}">
+  </head>
+  <body>
+    <nav class="navbar navbar-default">
+      <div class="container-fluid">
+        <ul class="nav navbar-nav navbar-right">
+          <li><a href="#">Home</a></li>
+          <li class="active"><a href="ballot">Ballot</a></li>
+          <li><a href="booth">Voting Booth</a></li>
+          <li><a href="candidate">Candidates</a></li>
+          <li><a href="initiative">Initiatives</a></li>
+        </ul>
+      </div>
+    </nav>
+
+    <div class="container">
+      {% if ask %}
+        <div class="row">
+          <h3>Select your name</h3>
+          <form method="POST" action="/ballot">
+            <div class="form-group">
+              <label for="nameSelect" style="font-weight: 400 !important;">Your Name</label>
+              <select name="name" class="form-control" id="nameSelect" required>
+                {% for n in data %}
+                  <option>{{n}}</option>
+                {% endfor %}
+              </select>
+            <div>
+            <br>
+
+            <button type="submit" class="btn btn-primary">Select</button>
+          </form>
+        </div>
+      {% else %}
+        <div class="row">
+          <h2>Ballot information for {{name}}</h2>
+          <br>
+
+          <h4>Voting Booth Address</h4>
+          <p>{{address}}</p>
+
+          <h4>Candidates</h4>
+          <ul>
+            {% for candidate in candidates %}
+              <li>{{candidate}}</li>
+            {% endfor %}
+          </ul>
+
+          <h4>Ballot Initiatives</h4>
+          <ul>
+            {% for initiative in initiatives %}
+              <li>
+                <p><b>Name: </b>{{initiative.name}}</p>
+                <p><b>Title: </b>{{initiative.title}}</p>
+                <p><b>Description </b>{{initiative.description}}</p>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+    </div>
+
+  </body>
+</html>

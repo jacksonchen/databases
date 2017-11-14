@@ -123,36 +123,82 @@ def index():
 
 @app.route('/', methods=['POST'])
 def create():
-    newID = g.conn.execute('SELECT MAX(vid) FROM Voter').fetchone()[0] + 1;
     try:
+        newVoterID = g.conn.execute('SELECT MAX(vid) FROM Voter').fetchone()[0] + 1
+        partyID = g.conn.execute('SELECT pid FROM PoliticalParty WHERE name = {0}'.format(request.form['party'])).fetchone()[0]
         g.conn.execute("""INSERT INTO Voter (vid, name, address, age)
                           VALUES ({vidinput}, '{nameinput}', '{addressinput}', {ageinput})
-                       """.format(vidinput = newID, nameinput = request.form['name'], addressinput = request.form['address'], ageinput = request.form['age']))
+                       """.format(vidinput = newVoterID, nameinput = request.form['name'], addressinput = request.form['address'], ageinput = request.form['age']))
+
+        g.conn.execute("""INSERT INTO VoterRegistration (vid, pid)
+                          VALUES ({vidinput}, {pidinput})
+                       """.format(vidinput = newVoterID, pidinput = partyID))
         return redirect('/')
     except Exception, e:
         return render_template("error.html", error=e)
 
 @app.route('/booth')
 def booth():
-  cursor = g.conn.execute("SELECT name FROM voter")
-  names = processSQLObj(cursor)
-  cursor.close()
+  return render_template("booth.html")
 
-  context = {'ask': True, 'data': names}
-  return render_template("booth.html", **context)
-
-@app.route('/booth', methods=['POST'])
-def boothpost():
-    name = request.form['name']
-    cursor = g.conn.execute("""SELECT v.address
-                      FROM ((Voter V JOIN Livesin L ON V.vid = L.vid) JOIN AssociatedWith A ON L.eid = A.eid) JOIN VotingBooth VB ON A.vbid = VB.vbid
-                      WHERE V.name = '{voterName}'""".format(voterName = name))
-
-    addr = processSQLObj(cursor)
+@app.route('/ballot')
+def ballot():
+    try:
+      cursor = g.conn.execute("SELECT name FROM voter")
+    except Exception, e:
+        return render_template("error.html", error=e)
+    names = processSQLObj(cursor)
     cursor.close()
 
-    context = {'ask': False, 'data': addr[0]}
-    return render_template("booth.html", **context)
+    context = {'ask': True, 'data': names}
+    return render_template("ballot.html", **context)
+
+@app.route('/ballot', methods=['POST'])
+def ballotpost():
+    try:
+        name = request.form['name']
+
+        addressQuery = """
+            SELECT vb.address
+            FROM (((Voter v JOIN CastBallot c ON v.vid = c.vid) JOIN Ballot B ON c.bid = b.bid) JOIN Distribute d ON d.bid = b.bid) JOIN VotingBooth vb ON vb.vbid = d.vbid
+            WHERE v.name = '{voterName}'
+        """
+        cursor = g.conn.execute(addressQuery.format(voterName = name))
+        addr = processSQLObj(cursor)[0]
+        cursor.close()
+
+        candidateQuery = """
+            SELECT ca.name
+            FROM (((Voter v JOIN CastBallot c ON v.vid = c.vid) JOIN Ballot B ON c.bid = b.bid) JOIN OfferCandidate o ON o.bid = b.bid) JOIN Candidate ca ON ca.cid = o.cid
+            WHERE v.name = '{voterName}'
+        """
+        cursor = g.conn.execute(candidateQuery.format(voterName = name))
+        candidates = processSQLObj(cursor)
+        cursor.close()
+
+        initiativeQuery = """
+            SELECT bi.name, bi.title, bi.description
+            FROM (((Voter v JOIN CastBallot c ON v.vid = c.vid) JOIN Ballot B ON c.bid = b.bid) JOIN OfferInitiative o ON o.bid = b.bid) JOIN BallotInitiative bi ON bi.biid = o.biid
+            WHERE v.name = '{voterName}'
+        """
+        cursor = g.conn.execute(initiativeQuery.format(voterName = name))
+        initiatives = []
+        for result in cursor:
+            initiative = {}
+            initiative['name'] = result[0]
+            initiative['title'] = result[1]
+            initiative['description'] = result[2]
+            print initiative
+            initiatives.append(initiative)
+        cursor.close()
+
+        print initiatives
+
+        context = {'ask': False, 'name': name, 'address': addr, 'candidates': candidates, 'initiatives': initiatives}
+        return render_template("ballot.html", **context)
+    except Exception, e:
+        return render_template("error.html", error=e)
+
 
 @app.route('/candidate')
 def candidate():
