@@ -223,7 +223,7 @@ def ballotpost():
         cursor.close()
 
         candidateQuery = """
-            SELECT ca.name, ca.platform
+            SELECT ca.name, ca.platform, (SELECT p.name FROM (Candidate ca2 JOIN AffiliatedWith aw ON ca2.cid = aw.cid) JOIN PoliticalParty p ON p.pid = aw.pid WHERE ca2.cid = ca.cid)
             FROM (((Voter v JOIN CastBallot c ON v.vid = c.vid) JOIN Ballot B ON c.bid = b.bid) JOIN OfferCandidate o ON o.bid = b.bid) JOIN Candidate ca ON ca.cid = o.cid
             WHERE v.name = '{voterName}'
         """
@@ -233,6 +233,7 @@ def ballotpost():
             candidate = {}
             candidate['name'] = result[0]
             candidate['platform'] = result[1]
+            candidate['party'] = result[2]
             candidates.append(candidate)
         cursor.close()
 
@@ -276,7 +277,7 @@ def candidatepost():
         district = request.form['district']
 
         candidateQuery = """
-            SELECT c.name, c.platform
+            SELECT c.name, c.platform, (SELECT p.name FROM (Candidate ca2 JOIN AffiliatedWith aw ON ca2.cid = aw.cid) JOIN PoliticalParty p ON p.pid = aw.pid WHERE ca2.cid = c.cid)
             FROM (ElectionDistrict e JOIN RunningIn r ON e.eid = r.eid) JOIN Candidate c ON r.cid = c.cid
             WHERE e.district = '{district}'
         """
@@ -286,6 +287,7 @@ def candidatepost():
             candidate = {}
             candidate['name'] = result[0]
             candidate['platform'] = result[1]
+            candidate['party'] = result[2]
             candidates.append(candidate)
         cursor.close()
 

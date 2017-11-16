@@ -46,7 +46,7 @@
           <h4>Candidates</h4>
           <ul>
             {% for candidate in candidates %}
-              <li><a target="_blank" href="{{candidate.platform}}">{{candidate.name}}</a></li>
+              <li><a target="_blank" href="{{candidate.platform}}">{{candidate.name}}</a> ({{candidate.party}})</li>
             {% endfor %}
           </ul>
 
