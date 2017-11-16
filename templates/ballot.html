@@ -39,12 +39,14 @@
           <br>
 
           <h4>Voting Booth Address</h4>
-          <p>{{address}}</p>
+          <p>{{booth.address}}</p>
+
+          <p><b>Current wait time:</b> {{booth.wait}} minutes</p>
 
           <h4>Candidates</h4>
           <ul>
             {% for candidate in candidates %}
-              <li>{{candidate}}</li>
+              <li><a target="_blank" href="{{candidate.platform}}">{{candidate.name}}</a></li>
             {% endfor %}
           </ul>
 

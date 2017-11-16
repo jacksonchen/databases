@@ -176,15 +176,18 @@ def boothpost():
         district = request.form['district']
 
         addressQuery = """
-            SELECT v.address
+            SELECT v.address, v.waittime
             FROM (ElectionDistrict e JOIN AssociatedWith a ON e.eid = a.eid) JOIN VotingBooth v ON v.vbid = a.vbid
             WHERE e.district = '{district}'
         """
         cursor = g.conn.execute(addressQuery.format(district = district))
-        addr = processSQLObj(cursor)[0]
+        booth = {}
+        for result in cursor:
+            booth['address'] = result[0]
+            booth['wait'] = result[1]
         cursor.close()
 
-        context = {'ask': False, 'address': addr}
+        context = {'ask': False, 'booth': booth}
         return render_template("booth.html", **context)
     except Exception, e:
         return render_template("error.html", error=e)
@@ -208,21 +211,29 @@ def ballotpost():
         name = request.form['name']
 
         addressQuery = """
-            SELECT vb.address
+            SELECT vb.address, vb.waittime
             FROM (((Voter v JOIN CastBallot c ON v.vid = c.vid) JOIN Ballot B ON c.bid = b.bid) JOIN Distribute d ON d.bid = b.bid) JOIN VotingBooth vb ON vb.vbid = d.vbid
             WHERE v.name = '{voterName}'
         """
         cursor = g.conn.execute(addressQuery.format(voterName = name))
-        addr = processSQLObj(cursor)[0]
+        booth = {}
+        for result in cursor:
+            booth['address'] = result[0]
+            booth['wait'] = result[1]
         cursor.close()
 
         candidateQuery = """
-            SELECT ca.name
+            SELECT ca.name, ca.platform
             FROM (((Voter v JOIN CastBallot c ON v.vid = c.vid) JOIN Ballot B ON c.bid = b.bid) JOIN OfferCandidate o ON o.bid = b.bid) JOIN Candidate ca ON ca.cid = o.cid
             WHERE v.name = '{voterName}'
         """
         cursor = g.conn.execute(candidateQuery.format(voterName = name))
-        candidates = processSQLObj(cursor)
+        candidates = []
+        for result in cursor:
+            candidate = {}
+            candidate['name'] = result[0]
+            candidate['platform'] = result[1]
+            candidates.append(candidate)
         cursor.close()
 
         initiativeQuery = """
@@ -241,7 +252,7 @@ def ballotpost():
             initiatives.append(initiative)
         cursor.close()
 
-        context = {'ask': False, 'name': name, 'address': addr, 'candidates': candidates, 'initiatives': initiatives}
+        context = {'ask': False, 'name': name, 'booth': booth, 'candidates': candidates, 'initiatives': initiatives}
         return render_template("ballot.html", **context)
     except Exception, e:
         return render_template("error.html", error=e)
@@ -265,16 +276,21 @@ def candidatepost():
         district = request.form['district']
 
         candidateQuery = """
-            SELECT c.name
-            FROM (ElectionDistrict e JOIN RunningIn r ON e.eid = r.eid) JOIN Candidate c ON r.cid = r.cid
+            SELECT c.name, c.platform
+            FROM (ElectionDistrict e JOIN RunningIn r ON e.eid = r.eid) JOIN Candidate c ON r.cid = c.cid
             WHERE e.district = '{district}'
         """
         cursor = g.conn.execute(candidateQuery.format(district = district))
-        candidates = processSQLObj(cursor)
+        candidates = []
+        for result in cursor:
+            candidate = {}
+            candidate['name'] = result[0]
+            candidate['platform'] = result[1]
+            candidates.append(candidate)
         cursor.close()
 
 
-        context = {'ask': False, 'candidates': candidates,}
+        context = {'ask': False, 'candidates': candidates}
         return render_template("candidate.html", **context)
     except Exception, e:
         return render_template("error.html", error=e)
@@ -308,7 +324,6 @@ def initiativepost():
             initiative['name'] = result[0]
             initiative['title'] = result[1]
             initiative['description'] = result[2]
-            print initiative
             initiatives.append(initiative)
         cursor.close()
 

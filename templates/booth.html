@@ -36,7 +36,9 @@
       {% else %}
         <div class="row">
           <h3>Your Voting Booth</h3>
-          <p>{{address}}</p>
+          <p>{{booth.address}}</p>
+
+          <p><b>Current wait time:</b> {{booth.wait}} minutes</p>
         </div>
       {% endif %}
     </div>
